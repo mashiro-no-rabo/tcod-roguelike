@@ -17,15 +17,26 @@ fn main() {
 
     tcod::system::set_fps(LIMIT_FPS);
 
+    let mut con = Offscreen::new(SCREEN_WIDTH, SCREEN_HEIGHT);
+
     let mut player_x = SCREEN_WIDTH / 2;
     let mut player_y = SCREEN_HEIGHT / 2;
 
     while !root.window_closed() {
-        root.set_default_foreground(colors::WHITE);
-        root.put_char(player_x, player_y, '@', BackgroundFlag::None);
+        con.set_default_foreground(colors::WHITE);
+        con.put_char(player_x, player_y, '@', BackgroundFlag::None);
+        blit(
+            &mut con,
+            (0, 0),
+            (SCREEN_WIDTH, SCREEN_HEIGHT),
+            &mut root,
+            (0, 0),
+            1.0,
+            1.0,
+        );
         root.flush();
 
-        root.put_char(player_x, player_y, ' ', BackgroundFlag::None);
+        con.put_char(player_x, player_y, ' ', BackgroundFlag::None);
         let exit = handle_keys(&mut root, &mut player_x, &mut player_y);
         if exit {
             break;
