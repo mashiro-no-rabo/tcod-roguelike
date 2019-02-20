@@ -1,0 +1,4 @@
+/target
+**/*.rs.bk
+
+/arial10x10.png
