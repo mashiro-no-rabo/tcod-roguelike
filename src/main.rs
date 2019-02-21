@@ -52,12 +52,7 @@ struct Object {
 
 impl Object {
     pub fn new(x: i32, y: i32, rep: char, color: Color) -> Self {
-        Object {
-            x: x,
-            y: y,
-            rep: rep,
-            color: color,
-        }
+        Object { x, y, rep, color }
     }
 
     pub fn move_by(&mut self, dx: i32, dy: i32, map: &Map) {
