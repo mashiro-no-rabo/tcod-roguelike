@@ -2,6 +2,7 @@
 name = "mechrogue"
 version = "0.1.0"
 authors = ["LOU Xun <aquarhead@ela.build>"]
+edition = "2018"
 
 [dependencies]
 tcod = "0.13"
