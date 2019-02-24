@@ -66,12 +66,10 @@ fn main() {
 
     let mut con = Offscreen::new(MAP_WIDTH, MAP_HEIGHT);
 
-    let player = Object::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, '@', colors::CYAN);
-    let npc = Object::new(SCREEN_WIDTH / 2 - 5, SCREEN_HEIGHT / 2, '@', colors::YELLOW);
+    let (map, (x, y)) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize);
 
-    let mut objects = [player, npc];
-
-    let map = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize);
+    let player = Object::new(x, y, '@', colors::CYAN);
+    let mut objects = [player];
 
     while !root.window_closed() {
         render_all(&mut root, &mut con, &objects, &map);
