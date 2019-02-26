@@ -108,6 +108,15 @@ fn main() {
         if exit {
             break;
         }
+
+        // AI behaviours
+        if objects[PLAYER].alive {
+            for (idx, object) in objects.iter().enumerate() {
+                if idx != PLAYER {
+                    println!("The {} growls!", object.name);
+                }
+            }
+        }
     }
 }
 
