@@ -36,6 +36,20 @@ impl Object {
         }
     }
 
+    pub fn attack_move(idx: usize, dx: i32, dy: i32, map: &Map, objects: &mut [Object]) {
+        if let Some(obj) = objects.get(idx) {
+            let (x, y) = obj.pos();
+            let (tx, ty) = (x + dx, y + dy);
+
+            let target_idx = objects.iter().position(|obj| obj.pos() == (tx, ty));
+
+            match target_idx {
+                Some(tidx) => println!("try attack {}", objects[tidx].name),
+                None => Self::try_move(idx, dx, dy, map, objects),
+            }
+        }
+    }
+
     /// set the color and then draw the character that represents this object at its position
     pub fn draw(&self, con: &mut Console) {
         con.set_default_foreground(self.color);

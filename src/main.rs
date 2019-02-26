@@ -141,19 +141,19 @@ fn handle_keys(root: &mut Root, objects: &mut Vec<Object>, map: &Map) -> PlayerA
 
         // movement keys
         (Key { code: Up, .. }, true) => {
-            Object::try_move(PLAYER, 0, -1, map, objects);
+            Object::attack_move(PLAYER, 0, -1, map, objects);
             TookTurn
         }
         (Key { code: Down, .. }, true) => {
-            Object::try_move(PLAYER, 0, 1, map, objects);
+            Object::attack_move(PLAYER, 0, 1, map, objects);
             TookTurn
         }
         (Key { code: Left, .. }, true) => {
-            Object::try_move(PLAYER, -1, 0, map, objects);
+            Object::attack_move(PLAYER, -1, 0, map, objects);
             TookTurn
         }
         (Key { code: Right, .. }, true) => {
-            Object::try_move(PLAYER, 1, 0, map, objects);
+            Object::attack_move(PLAYER, 1, 0, map, objects);
             TookTurn
         }
 
