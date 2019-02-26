@@ -52,7 +52,8 @@ fn main() {
 
     let (mut map, (x, y)) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize, &mut objects);
 
-    let player = Object::new(x, y, '@', colors::CYAN, "aquarhead", true);
+    let mut player = Object::new(x, y, '@', colors::CYAN, "aquarhead", true);
+    player.alive = true;
     objects.insert(0, player);
 
     let mut fov_map = FovMap::new(MAP_WIDTH, MAP_HEIGHT);

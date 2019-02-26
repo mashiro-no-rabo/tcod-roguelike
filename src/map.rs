@@ -176,6 +176,8 @@ fn place_objects(room: Rect, objects: &mut Vec<Object>) {
             Object::new(x, y, 'T', colors::DARKER_GREEN, "troll", true)
         };
 
+        monster.alive = true;
+
         objects.push(monster);
     }
 }
