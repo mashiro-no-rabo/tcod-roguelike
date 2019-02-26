@@ -171,9 +171,9 @@ fn place_objects(room: Rect, objects: &mut Vec<Object>) {
         let mut monster = if rand::random::<f32>() < 0.8 {
             // 80% chance of getting an orc
             // create an orc
-            Object::new(x, y, 'o', colors::DESATURATED_GREEN)
+            Object::new(x, y, 'o', colors::DESATURATED_GREEN, "orc", true)
         } else {
-            Object::new(x, y, 'T', colors::DARKER_GREEN)
+            Object::new(x, y, 'T', colors::DARKER_GREEN, "troll", true)
         };
 
         objects.push(monster);

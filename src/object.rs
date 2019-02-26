@@ -9,18 +9,30 @@ pub struct Object {
     y: i32,
     pub rep: char,
     pub color: Color,
+    pub name: String,
+    pub blocks: bool,
+    pub alive: bool,
 }
 
 impl Object {
-    pub fn new(x: i32, y: i32, rep: char, color: Color) -> Self {
-        Object { x, y, rep, color }
+    pub fn new(x: i32, y: i32, rep: char, color: Color, name: &str, blocks: bool) -> Self {
+        Object {
+            x,
+            y,
+            rep,
+            color,
+            name: name.into(),
+            blocks,
+            alive: false,
+        }
     }
 
-    pub fn move_by(&mut self, dx: i32, dy: i32, map: &Map) {
-        // can't move onto blocked tile
-        if !map[(self.x + dx) as usize][(self.y + dy) as usize].blocked {
-            self.x += dx;
-            self.y += dy;
+    pub fn try_move(idx: usize, dx: i32, dy: i32, map: &Map, objects: &mut [Object]) {
+        if let Some(obj) = objects.get(idx) {
+            let (x, y) = obj.pos();
+            if !is_blocked(x + dx, y + dy, map, objects) {
+                objects[idx].set_pos(x + dx, y + dy);
+            }
         }
     }
 
@@ -43,4 +55,15 @@ impl Object {
         self.x = x;
         self.y = y;
     }
+}
+
+fn is_blocked(x: i32, y: i32, map: &Map, objects: &[Object]) -> bool {
+    // first test the map tile
+    if map[x as usize][y as usize].blocked {
+        return true;
+    }
+    // now check for any blocking objects
+    objects
+        .iter()
+        .any(|object| object.blocks && object.pos() == (x, y))
 }

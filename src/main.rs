@@ -52,7 +52,7 @@ fn main() {
 
     let (mut map, (x, y)) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize, &mut objects);
 
-    let player = Object::new(x, y, '@', colors::CYAN);
+    let player = Object::new(x, y, '@', colors::CYAN, "aquarhead", true);
     objects.insert(0, player);
 
     let mut fov_map = FovMap::new(MAP_WIDTH, MAP_HEIGHT);
@@ -89,16 +89,15 @@ fn main() {
         }
 
         previous_player_position = new_pos;
-        let player = &mut objects[PLAYER];
         // handle keys and exit game if needed
-        let exit = handle_keys(&mut root, player, &map);
+        let exit = handle_keys(&mut root, &mut objects, &map);
         if exit {
             break;
         }
     }
 }
 
-fn handle_keys(root: &mut Root, player: &mut Object, map: &Map) -> bool {
+fn handle_keys(root: &mut Root, objects: &mut Vec<Object>, map: &Map) -> bool {
     use tcod::input::Key;
     use tcod::input::KeyCode::*;
 
@@ -107,10 +106,10 @@ fn handle_keys(root: &mut Root, player: &mut Object, map: &Map) -> bool {
         Key { code: Escape, .. } => return true, // exit game
 
         // movement keys
-        Key { code: Up, .. } => player.move_by(0, -1, map),
-        Key { code: Down, .. } => player.move_by(0, 1, map),
-        Key { code: Left, .. } => player.move_by(-1, 0, map),
-        Key { code: Right, .. } => player.move_by(1, 0, map),
+        Key { code: Up, .. } => Object::try_move(PLAYER, 0, -1, map, objects),
+        Key { code: Down, .. } => Object::try_move(PLAYER, 0, 1, map, objects),
+        Key { code: Left, .. } => Object::try_move(PLAYER, -1, 0, map, objects),
+        Key { code: Right, .. } => Object::try_move(PLAYER, 1, 0, map, objects),
 
         _ => {}
     }
