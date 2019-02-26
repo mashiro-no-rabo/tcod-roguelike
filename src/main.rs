@@ -77,7 +77,7 @@ fn main() {
 
     let mut con = Offscreen::new(MAP_WIDTH, MAP_HEIGHT);
 
-    let (map, (x, y)) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize);
+    let (mut map, (x, y)) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize);
 
     let player = Object::new(x, y, '@', colors::CYAN);
     let mut objects = [player];
@@ -102,7 +102,7 @@ fn main() {
             &mut root,
             &mut con,
             &objects,
-            &map,
+            &mut map,
             &mut fov_map,
             fov_recompute,
         );
@@ -145,13 +145,13 @@ fn handle_keys(root: &mut Root, player: &mut Object, map: &Map) -> bool {
 
 const FOV_ALGO: FovAlgorithm = FovAlgorithm::Basic;
 const FOV_LIGHT_WALLS: bool = true;
-const TORCH_RADIUS: i32 = 6;
+const TORCH_RADIUS: i32 = 4;
 
 fn render_all(
     root: &mut Root,
     con: &mut Offscreen,
     objects: &[Object],
-    map: &Map,
+    map: &mut Map,
     fov_map: &mut FovMap,
     fov_recompute: bool,
 ) {
@@ -164,7 +164,9 @@ fn render_all(
         for y in 0..MAP_HEIGHT {
             for x in 0..MAP_WIDTH {
                 let visible = fov_map.is_in_fov(x, y);
+
                 let wall = map[x as usize][y as usize].block_sight;
+
                 let color = match (visible, wall) {
                     // outside of field of view:
                     (false, true) => COLOR_DARK_WALL,
@@ -173,7 +175,17 @@ fn render_all(
                     (true, true) => COLOR_LIGHT_WALL,
                     (true, false) => COLOR_LIGHT_GROUND,
                 };
-                con.set_char_background(x, y, color, BackgroundFlag::Set);
+
+                let explored = &mut map[x as usize][y as usize].explored;
+                if visible {
+                    // since it's visible, explore it
+                    *explored = true;
+                }
+
+                if *explored {
+                    // show explored tiles only (any visible tile is explored already)
+                    con.set_char_background(x, y, color, BackgroundFlag::Set);
+                }
             }
         }
     }
