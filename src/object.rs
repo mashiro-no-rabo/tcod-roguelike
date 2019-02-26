@@ -5,8 +5,8 @@ use crate::map::Map;
 
 #[derive(Debug)]
 pub struct Object {
-    pub x: i32,
-    pub y: i32,
+    x: i32,
+    y: i32,
     pub rep: char,
     pub color: Color,
 }
@@ -33,5 +33,14 @@ impl Object {
     /// Erase the character that represents this object
     pub fn clear(&self, con: &mut Console) {
         con.put_char(self.x, self.y, ' ', BackgroundFlag::None);
+    }
+
+    pub fn pos(&self) -> (i32, i32) {
+        (self.x, self.y)
+    }
+
+    pub fn set_pos(&mut self, x: i32, y: i32) {
+        self.x = x;
+        self.y = y;
     }
 }
