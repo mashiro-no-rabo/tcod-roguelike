@@ -7,7 +7,7 @@ mod map;
 use map::{make_map, Map};
 
 mod object;
-use object::{Fighter, Object};
+use object::{HitPoints, Melee, Object};
 
 pub type Position = (i32, i32);
 
@@ -120,11 +120,13 @@ fn main() {
 fn create_player((x, y): Position) -> Object {
     let mut player = Object::new(x, y, '@', colors::CYAN, "aquarhead", true);
     player.alive = true;
-    player.fighter = Some(Fighter {
-        max_hp: 30,
-        hp: 30,
-        defense: 2,
+    player.hp = Some(HitPoints {
+        max: 30,
+        current: 30,
+    });
+    player.melee = Some(Melee {
         attack: 5,
+        defense: 2,
     });
 
     player

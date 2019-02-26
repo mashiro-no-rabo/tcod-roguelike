@@ -13,7 +13,8 @@ pub struct Object {
     pub name: String,
     pub blocks: bool,
     pub alive: bool,
-    pub fighter: Option<Fighter>,
+    pub hp: Option<HitPoints>,
+    pub melee: Option<Melee>,
     pub ai: Option<Ai>,
 }
 
@@ -27,7 +28,8 @@ impl Object {
             name: name.into(),
             blocks,
             alive: false,
-            fighter: None,
+            hp: None,
+            melee: None,
             ai: None,
         }
     }
@@ -88,11 +90,22 @@ fn is_blocked(x: i32, y: i32, map: &Map, objects: &[Object]) -> bool {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Fighter {
-    pub max_hp: i32,
-    pub hp: i32,
-    pub defense: i32,
+pub struct HitPoints {
+    pub max: i32,
+    pub current: i32,
+}
+
+impl HitPoints {
+    #[allow(dead_code)]
+    pub fn alive(&self) -> bool {
+        self.current > 0
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Melee {
     pub attack: i32,
+    pub defense: i32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

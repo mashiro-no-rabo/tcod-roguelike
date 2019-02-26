@@ -2,7 +2,7 @@ use rand::Rng;
 use std::cmp;
 use tcod::colors;
 
-use crate::object::{Ai, Fighter, Object};
+use crate::object::{Ai, HitPoints, Melee, Object};
 use crate::Position;
 
 #[derive(Clone, Copy, Debug)]
@@ -173,21 +173,25 @@ fn place_objects(room: Rect, objects: &mut Vec<Object>) {
             // 80% chance of getting an orc
             // create an orc
             let mut orc = Object::new(x, y, 'o', colors::DESATURATED_GREEN, "orc", true);
-            orc.fighter = Some(Fighter {
-                max_hp: 10,
-                hp: 10,
-                defense: 0,
+            orc.hp = Some(HitPoints {
+                max: 10,
+                current: 10,
+            });
+            orc.melee = Some(Melee {
                 attack: 3,
+                defense: 0,
             });
             orc.ai = Some(Ai);
             orc
         } else {
             let mut troll = Object::new(x, y, 'T', colors::DARKER_GREEN, "troll", true);
-            troll.fighter = Some(Fighter {
-                max_hp: 16,
-                hp: 16,
-                defense: 1,
+            troll.hp = Some(HitPoints {
+                max: 16,
+                current: 16,
+            });
+            troll.melee = Some(Melee {
                 attack: 4,
+                defense: 1,
             });
             troll.ai = Some(Ai);
             troll
