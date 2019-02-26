@@ -27,8 +27,6 @@ impl Tile {
 
 pub type Map = Vec<Vec<Tile>>;
 
-extern crate rand;
-
 use rand::Rng;
 
 const ROOM_MAX_SIZE: i32 = 10;
