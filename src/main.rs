@@ -6,6 +6,9 @@ use tcod::Color;
 mod map;
 use map::{make_map, Map};
 
+mod object;
+use object::Object;
+
 const SCREEN_WIDTH: i32 = 80;
 const SCREEN_HEIGHT: i32 = 50;
 const LIMIT_FPS: i32 = 20;
@@ -30,38 +33,6 @@ const COLOR_LIGHT_GROUND: Color = Color {
     b: 50,
 };
 
-#[derive(Debug)]
-struct Object {
-    x: i32,
-    y: i32,
-    rep: char,
-    color: Color,
-}
-
-impl Object {
-    pub fn new(x: i32, y: i32, rep: char, color: Color) -> Self {
-        Object { x, y, rep, color }
-    }
-
-    pub fn move_by(&mut self, dx: i32, dy: i32, map: &Map) {
-        // can't move onto blocked tile
-        if !map[(self.x + dx) as usize][(self.y + dy) as usize].blocked {
-            self.x += dx;
-            self.y += dy;
-        }
-    }
-
-    /// set the color and then draw the character that represents this object at its position
-    pub fn draw(&self, con: &mut Console) {
-        con.set_default_foreground(self.color);
-        con.put_char(self.x, self.y, self.rep, BackgroundFlag::None);
-    }
-
-    /// Erase the character that represents this object
-    pub fn clear(&self, con: &mut Console) {
-        con.put_char(self.x, self.y, ' ', BackgroundFlag::None);
-    }
-}
 
 fn main() {
     let mut root = Root::initializer()

@@ -1,5 +1,7 @@
 use std::cmp;
 
+use crate::object::Object;
+
 #[derive(Clone, Copy, Debug)]
 pub struct Tile {
     pub blocked: bool,
