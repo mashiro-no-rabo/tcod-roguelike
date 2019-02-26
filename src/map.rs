@@ -1,4 +1,6 @@
 use std::cmp;
+use rand::Rng;
+use tcod::colors;
 
 use crate::object::Object;
 
@@ -29,13 +31,11 @@ impl Tile {
 
 pub type Map = Vec<Vec<Tile>>;
 
-use rand::Rng;
-
 const ROOM_MAX_SIZE: i32 = 10;
 const ROOM_MIN_SIZE: i32 = 6;
 const MAX_ROOMS: i32 = 30;
 
-pub fn make_map(height: usize, width: usize) -> (Map, (i32, i32)) {
+pub fn make_map(height: usize, width: usize, objects: &mut Vec<Object>) -> (Map, (i32, i32)) {
     let mut map = vec![vec![Tile::wall(); height]; width];
 
     let mut rooms = vec![];
@@ -76,6 +76,9 @@ pub fn make_map(height: usize, width: usize) -> (Map, (i32, i32)) {
                 // center coordinates of the previous room
                 let (prev_x, prev_y) = rooms[rooms.len() - 1].center();
 
+                // place monsters only in non-first rooms
+                place_objects(new_room, objects);
+
                 // draw a coin (random bool value -- either true or false)
                 if rand::random() {
                     // first move horizontally, then vertically
@@ -96,7 +99,7 @@ pub fn make_map(height: usize, width: usize) -> (Map, (i32, i32)) {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct Rect {
+pub struct Rect {
     x1: i32,
     y1: i32,
     x2: i32,
@@ -126,6 +129,13 @@ impl Rect {
             && (self.y1 <= other.y2)
             && (self.y2 >= other.y1)
     }
+
+    pub fn rand_inside(&self) -> (i32, i32) {
+        let x = rand::thread_rng().gen_range(self.x1 + 1, self.x2);
+        let y = rand::thread_rng().gen_range(self.y1 + 1, self.y2);
+
+        (x, y)
+    }
 }
 
 fn create_room(room: Rect, map: &mut Map) {
@@ -145,5 +155,28 @@ fn create_h_tunnel(x1: i32, x2: i32, y: i32, map: &mut Map) {
 fn create_v_tunnel(y1: i32, y2: i32, x: i32, map: &mut Map) {
     for y in cmp::min(y1, y2)..=cmp::max(y1, y2) {
         map[x as usize][y as usize] = Tile::empty();
+    }
+}
+
+
+const MAX_ROOM_MONSTERS: i32 = 3;
+
+fn place_objects(room: Rect, objects: &mut Vec<Object>) {
+    // choose random number of monsters
+    let num_monsters = rand::thread_rng().gen_range(0, MAX_ROOM_MONSTERS + 1);
+
+    for _ in 0..num_monsters {
+        // choose random spot for this monster
+        let (x, y) = room.rand_inside();
+
+        let mut monster = if rand::random::<f32>() < 0.8 {
+            // 80% chance of getting an orc
+            // create an orc
+            Object::new(x, y, 'o', colors::DESATURATED_GREEN)
+        } else {
+            Object::new(x, y, 'T', colors::DARKER_GREEN)
+        };
+
+        objects.push(monster);
     }
 }

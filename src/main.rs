@@ -46,10 +46,12 @@ fn main() {
 
     let mut con = Offscreen::new(MAP_WIDTH, MAP_HEIGHT);
 
-    let (mut map, (x, y)) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize);
+    let mut objects : Vec<Object> = Vec::new();
+
+    let (mut map, (x, y)) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize, &mut objects);
 
     let player = Object::new(x, y, '@', colors::CYAN);
-    let mut objects = [player];
+    objects.insert(0, player);
 
     let mut fov_map = FovMap::new(MAP_WIDTH, MAP_HEIGHT);
     for y in 0..MAP_HEIGHT {
