@@ -90,32 +90,66 @@ fn main() {
         }
 
         previous_player_position = new_pos;
+
+        let mut exit = false;
+
         // handle keys and exit game if needed
-        let exit = handle_keys(&mut root, &mut objects, &map);
+        loop {
+            match handle_keys(&mut root, &mut objects, &map) {
+                PlayerAction::TookTurn => break,
+                PlayerAction::NoTurn => {}
+                PlayerAction::Exit => {
+                    exit = true;
+                    break;
+                }
+            }
+        }
+
         if exit {
             break;
         }
     }
 }
 
-fn handle_keys(root: &mut Root, objects: &mut Vec<Object>, map: &Map) -> bool {
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum PlayerAction {
+    TookTurn,
+    NoTurn,
+    Exit,
+}
+
+fn handle_keys(root: &mut Root, objects: &mut Vec<Object>, map: &Map) -> PlayerAction {
     use tcod::input::Key;
     use tcod::input::KeyCode::*;
 
+    use PlayerAction::*;
+
+    let player_alive = objects[PLAYER].alive;
     let key = root.wait_for_keypress(true);
-    match key {
-        Key { code: Escape, .. } => return true, // exit game
+
+    match (key, player_alive) {
+        (Key { code: Escape, .. }, _) => Exit, // exit game
 
         // movement keys
-        Key { code: Up, .. } => Object::try_move(PLAYER, 0, -1, map, objects),
-        Key { code: Down, .. } => Object::try_move(PLAYER, 0, 1, map, objects),
-        Key { code: Left, .. } => Object::try_move(PLAYER, -1, 0, map, objects),
-        Key { code: Right, .. } => Object::try_move(PLAYER, 1, 0, map, objects),
+        (Key { code: Up, .. }, true) => {
+            Object::try_move(PLAYER, 0, -1, map, objects);
+            TookTurn
+        }
+        (Key { code: Down, .. }, true) => {
+            Object::try_move(PLAYER, 0, 1, map, objects);
+            TookTurn
+        }
+        (Key { code: Left, .. }, true) => {
+            Object::try_move(PLAYER, -1, 0, map, objects);
+            TookTurn
+        }
+        (Key { code: Right, .. }, true) => {
+            Object::try_move(PLAYER, 1, 0, map, objects);
+            TookTurn
+        }
 
-        _ => {}
+        _ => NoTurn,
     }
-
-    false
 }
 
 const FOV_ALGO: FovAlgorithm = FovAlgorithm::Basic;
