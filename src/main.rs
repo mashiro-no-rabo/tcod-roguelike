@@ -48,7 +48,7 @@ fn main() {
 
     let mut con = Offscreen::new(MAP_WIDTH, MAP_HEIGHT);
 
-    let mut objects : Vec<Object> = Vec::new();
+    let mut objects: Vec<Object> = Vec::new();
 
     let (mut map, (x, y)) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize, &mut objects);
 

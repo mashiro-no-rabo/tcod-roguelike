@@ -1,5 +1,5 @@
-use std::cmp;
 use rand::Rng;
+use std::cmp;
 use tcod::colors;
 
 use crate::object::Object;
@@ -157,7 +157,6 @@ fn create_v_tunnel(y1: i32, y2: i32, x: i32, map: &mut Map) {
         map[x as usize][y as usize] = Tile::empty();
     }
 }
-
 
 const MAX_ROOM_MONSTERS: i32 = 3;
 
