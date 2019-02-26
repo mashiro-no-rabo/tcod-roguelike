@@ -33,6 +33,8 @@ const COLOR_LIGHT_GROUND: Color = Color {
     b: 50,
 };
 
+// player will always be the first object
+const PLAYER: usize = 0;
 
 fn main() {
     let mut root = Root::initializer()
@@ -68,7 +70,7 @@ fn main() {
     let mut previous_player_position = (-1, -1);
 
     while !root.window_closed() {
-        let fov_recompute = previous_player_position != (objects[0].x, objects[0].y);
+        let fov_recompute = previous_player_position != (objects[PLAYER].x, objects[PLAYER].y);
         render_all(
             &mut root,
             &mut con,
@@ -85,7 +87,7 @@ fn main() {
         }
 
         // handle keys and exit game if needed
-        let player = &mut objects[0];
+        let player = &mut objects[PLAYER];
         previous_player_position = (player.x, player.y);
         let exit = handle_keys(&mut root, player, &map);
         if exit {
@@ -128,7 +130,7 @@ fn render_all(
 ) {
     if fov_recompute {
         // recompute FOV if needed (the player moved or something)
-        let player = &objects[0];
+        let player = &objects[PLAYER];
         fov_map.compute_fov(player.x, player.y, TORCH_RADIUS, FOV_LIGHT_WALLS, FOV_ALGO);
 
         // go through all tiles, and set their background color
