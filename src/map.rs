@@ -2,7 +2,8 @@ use rand::Rng;
 use std::cmp;
 use tcod::colors;
 
-use crate::object::Object;
+use crate::object::{Ai, Fighter, Object};
+use crate::Position;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Tile {
@@ -35,7 +36,7 @@ const ROOM_MAX_SIZE: i32 = 10;
 const ROOM_MIN_SIZE: i32 = 6;
 const MAX_ROOMS: i32 = 30;
 
-pub fn make_map(height: usize, width: usize, objects: &mut Vec<Object>) -> (Map, (i32, i32)) {
+pub fn make_map(height: usize, width: usize, objects: &mut Vec<Object>) -> (Map, Position) {
     let mut map = vec![vec![Tile::wall(); height]; width];
 
     let mut rooms = vec![];
@@ -116,7 +117,7 @@ impl Rect {
         }
     }
 
-    pub fn center(&self) -> (i32, i32) {
+    pub fn center(&self) -> Position {
         let center_x = (self.x1 + self.x2) / 2;
         let center_y = (self.y1 + self.y2) / 2;
         (center_x, center_y)
@@ -130,7 +131,7 @@ impl Rect {
             && (self.y2 >= other.y1)
     }
 
-    pub fn rand_inside(&self) -> (i32, i32) {
+    pub fn rand_inside(&self) -> Position {
         let x = rand::thread_rng().gen_range(self.x1 + 1, self.x2);
         let y = rand::thread_rng().gen_range(self.y1 + 1, self.y2);
 
@@ -171,9 +172,25 @@ fn place_objects(room: Rect, objects: &mut Vec<Object>) {
         let mut monster = if rand::random::<f32>() < 0.8 {
             // 80% chance of getting an orc
             // create an orc
-            Object::new(x, y, 'o', colors::DESATURATED_GREEN, "orc", true)
+            let mut orc = Object::new(x, y, 'o', colors::DESATURATED_GREEN, "orc", true);
+            orc.fighter = Some(Fighter {
+                max_hp: 10,
+                hp: 10,
+                defense: 0,
+                attack: 3,
+            });
+            orc.ai = Some(Ai);
+            orc
         } else {
-            Object::new(x, y, 'T', colors::DARKER_GREEN, "troll", true)
+            let mut troll = Object::new(x, y, 'T', colors::DARKER_GREEN, "troll", true);
+            troll.fighter = Some(Fighter {
+                max_hp: 16,
+                hp: 16,
+                defense: 1,
+                attack: 4,
+            });
+            troll.ai = Some(Ai);
+            troll
         };
 
         monster.alive = true;

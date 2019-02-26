@@ -7,7 +7,9 @@ mod map;
 use map::{make_map, Map};
 
 mod object;
-use object::Object;
+use object::{Fighter, Object};
+
+pub type Position = (i32, i32);
 
 const SCREEN_WIDTH: i32 = 80;
 const SCREEN_HEIGHT: i32 = 50;
@@ -43,18 +45,12 @@ fn main() {
         .size(SCREEN_WIDTH, SCREEN_HEIGHT)
         .title("MechRogue")
         .init();
-
     tcod::system::set_fps(LIMIT_FPS);
-
     let mut con = Offscreen::new(MAP_WIDTH, MAP_HEIGHT);
 
     let mut objects: Vec<Object> = Vec::new();
-
-    let (mut map, (x, y)) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize, &mut objects);
-
-    let mut player = Object::new(x, y, '@', colors::CYAN, "aquarhead", true);
-    player.alive = true;
-    objects.insert(0, player);
+    let (mut map, start_position) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize, &mut objects);
+    objects.insert(0, create_player(start_position));
 
     let mut fov_map = FovMap::new(MAP_WIDTH, MAP_HEIGHT);
     for y in 0..MAP_HEIGHT {
@@ -70,6 +66,7 @@ fn main() {
 
     let mut previous_player_position = (-1, -1);
 
+    // enter Game Loop
     while !root.window_closed() {
         let new_pos = objects[PLAYER].pos();
 
@@ -118,6 +115,19 @@ fn main() {
             }
         }
     }
+}
+
+fn create_player((x, y): Position) -> Object {
+    let mut player = Object::new(x, y, '@', colors::CYAN, "aquarhead", true);
+    player.alive = true;
+    player.fighter = Some(Fighter {
+        max_hp: 30,
+        hp: 30,
+        defense: 2,
+        attack: 5,
+    });
+
+    player
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
