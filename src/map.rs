@@ -162,6 +162,8 @@ fn create_v_tunnel(y1: i32, y2: i32, x: i32, map: &mut Map) {
 const MAX_ROOM_MONSTERS: i32 = 3;
 
 fn place_objects(room: Rect, objects: &mut Vec<Object>) {
+    use crate::object::DeathCallback;
+
     // choose random number of monsters
     let num_monsters = rand::thread_rng().gen_range(0, MAX_ROOM_MONSTERS + 1);
 
@@ -176,6 +178,7 @@ fn place_objects(room: Rect, objects: &mut Vec<Object>) {
             orc.hp = Some(HitPoints {
                 max: 10,
                 current: 10,
+                on_death: DeathCallback::Monster,
             });
             orc.melee = Some(Melee {
                 attack: 3,
@@ -188,6 +191,7 @@ fn place_objects(room: Rect, objects: &mut Vec<Object>) {
             troll.hp = Some(HitPoints {
                 max: 16,
                 current: 16,
+                on_death: DeathCallback::Monster,
             });
             troll.melee = Some(Melee {
                 attack: 4,

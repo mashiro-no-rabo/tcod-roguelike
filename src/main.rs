@@ -127,21 +127,20 @@ fn ai_take_turn(idx: usize, map: &Map, objects: &mut [Object], fov_map: &FovMap)
             Object::move_towards(idx, player_x, player_y, map, objects);
         } else if objects[PLAYER].hp.map_or(false, |p| p.alive()) {
             // close enough, attack! (if the player is still alive)
-            let monster = &objects[idx];
-            println!(
-                "The attack of the {} bounces off your shiny metal armor!",
-                monster.name
-            );
+            let (monster, player) = mut_two(idx, PLAYER, objects);
+            monster.melee_attack(player);
         }
     }
 }
 
 fn create_player((x, y): Position) -> Object {
+    use object::DeathCallback;
     let mut player = Object::new(x, y, '@', colors::CYAN, "aquarhead", true);
     player.alive = true;
     player.hp = Some(HitPoints {
         max: 30,
         current: 30,
+        on_death: DeathCallback::Player,
     });
     player.melee = Some(Melee {
         attack: 5,
@@ -149,6 +148,21 @@ fn create_player((x, y): Position) -> Object {
     });
 
     player
+}
+
+/// Mutably borrow two *separate* elements from the given slice.
+/// Panics when the indexes are equal or out of bounds.
+pub fn mut_two<T>(first_index: usize, second_index: usize, items: &mut [T]) -> (&mut T, &mut T) {
+    use std::cmp;
+
+    assert!(first_index != second_index);
+    let split_at_index = cmp::max(first_index, second_index);
+    let (first_slice, second_slice) = items.split_at_mut(split_at_index);
+    if first_index < second_index {
+        (&mut first_slice[first_index], &mut second_slice[0])
+    } else {
+        (&mut second_slice[0], &mut first_slice[second_index])
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -241,11 +255,17 @@ fn render_all(
     }
 
     // render objects
-    for object in objects {
-        let (x, y) = object.pos();
-        if fov_map.is_in_fov(x, y) {
-            object.draw(con);
-        }
+    let mut to_draw: Vec<_> = objects
+        .iter()
+        .filter(|obj| {
+            let (x, y) = obj.pos();
+            fov_map.is_in_fov(x, y)
+        })
+        .collect();
+    // sort so that non-blocking objects come first
+    to_draw.sort_by(|o1, o2| o1.blocks.cmp(&o2.blocks));
+    for object in &to_draw {
+        object.draw(con);
     }
 
     // blit the contents of "con" to the root console and present it

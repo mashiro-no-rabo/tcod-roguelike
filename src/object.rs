@@ -1,8 +1,11 @@
+use tcod::colors;
 use tcod::console::*;
 use tcod::Color;
 
 use crate::map::Map;
+use crate::mut_two;
 use crate::Position;
+use crate::PLAYER;
 
 #[derive(Debug)]
 pub struct Object {
@@ -48,10 +51,15 @@ impl Object {
             let (x, y) = obj.pos();
             let (tx, ty) = (x + dx, y + dy);
 
-            let target_idx = objects.iter().position(|obj| obj.pos() == (tx, ty));
+            let target_idx = objects
+                .iter()
+                .position(|obj| obj.pos() == (tx, ty) && obj.melee.is_some());
 
             match target_idx {
-                Some(tidx) => println!("try attack {}", objects[tidx].name),
+                Some(tidx) => {
+                    let (player, target) = mut_two(PLAYER, tidx, objects);
+                    player.melee_attack(target);
+                }
                 None => Self::try_move(idx, dx, dy, map, objects),
             }
         }
@@ -102,6 +110,39 @@ impl Object {
         let dy = other.y - self.y;
         ((dx.pow(2) + dy.pow(2)) as f32).sqrt()
     }
+
+    pub fn take_damage(&mut self, damage: i32) {
+        if let Some(hp) = self.hp.as_mut() {
+            if damage > 0 {
+                hp.current -= damage;
+            }
+        }
+
+        if let Some(hp) = self.hp {
+            if !hp.alive() {
+                self.alive = false;
+                hp.on_death.callback(self);
+            }
+        }
+    }
+
+    pub fn melee_attack(&mut self, target: &mut Object) {
+        // a simple formula for attack damage
+        let damage = self.melee.map_or(0, |m| m.attack) - target.melee.map_or(0, |m| m.defense);
+        if damage > 0 {
+            // make the target take some damage
+            println!(
+                "{} attacks {} for {} hit points.",
+                self.name, target.name, damage
+            );
+            target.take_damage(damage);
+        } else {
+            println!(
+                "{} attacks {} but it has no effect!",
+                self.name, target.name
+            );
+        }
+    }
 }
 
 fn is_blocked(x: i32, y: i32, map: &Map, objects: &[Object]) -> bool {
@@ -119,6 +160,48 @@ fn is_blocked(x: i32, y: i32, map: &Map, objects: &[Object]) -> bool {
 pub struct HitPoints {
     pub max: i32,
     pub current: i32,
+    pub on_death: DeathCallback,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum DeathCallback {
+    Player,
+    Monster,
+}
+
+impl DeathCallback {
+    pub fn callback(self, object: &mut Object) {
+        use DeathCallback::*;
+
+        let callback: fn(&mut Object) = match self {
+            Player => player_death,
+            Monster => monster_death,
+        };
+
+        callback(object);
+    }
+}
+
+fn player_death(player: &mut Object) {
+    // the game ended!
+    println!("You died!");
+
+    // for added effect, transform the player into a corpse!
+    player.rep = '%';
+    player.color = colors::DARK_RED;
+}
+
+fn monster_death(monster: &mut Object) {
+    // transform it into a nasty corpse! it doesn't block, can't be
+    // attacked and doesn't move
+    println!("{} is dead!", monster.name);
+    monster.rep = '%';
+    monster.color = colors::DARK_RED;
+    monster.blocks = false;
+    monster.hp = None;
+    monster.melee = None;
+    monster.ai = None;
+    monster.name = format!("remains of {}", monster.name);
 }
 
 impl HitPoints {
