@@ -122,7 +122,6 @@ pub struct HitPoints {
 }
 
 impl HitPoints {
-    #[allow(dead_code)]
     pub fn alive(&self) -> bool {
         self.current > 0
     }
