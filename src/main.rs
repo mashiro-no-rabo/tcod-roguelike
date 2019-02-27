@@ -108,11 +108,30 @@ fn main() {
 
         // AI behaviours
         if objects[PLAYER].alive {
-            for (idx, object) in objects.iter().enumerate() {
-                if idx != PLAYER {
-                    println!("The {} growls!", object.name);
+            for idx in 0..objects.len() {
+                if objects[idx].ai.is_some() {
+                    ai_take_turn(idx, &map, &mut objects, &fov_map);
                 }
             }
+        }
+    }
+}
+
+fn ai_take_turn(idx: usize, map: &Map, objects: &mut [Object], fov_map: &FovMap) {
+    // a basic monster takes its turn. If you can see it, it can see you
+    let (monster_x, monster_y) = objects[idx].pos();
+    if fov_map.is_in_fov(monster_x, monster_y) {
+        if objects[idx].distance_to(&objects[PLAYER]) >= 2.0 {
+            // move towards player if far away
+            let (player_x, player_y) = objects[PLAYER].pos();
+            Object::move_towards(idx, player_x, player_y, map, objects);
+        } else if objects[PLAYER].hp.map_or(false, |p| p.alive()) {
+            // close enough, attack! (if the player is still alive)
+            let monster = &objects[idx];
+            println!(
+                "The attack of the {} bounces off your shiny metal armor!",
+                monster.name
+            );
         }
     }
 }
