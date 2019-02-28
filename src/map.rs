@@ -160,6 +160,7 @@ fn create_v_tunnel(y1: i32, y2: i32, x: i32, map: &mut Map) {
 }
 
 const MAX_ROOM_MONSTERS: i32 = 3;
+const MAX_ROOM_ITEMS: i32 = 2;
 
 fn place_objects(room: Rect, objects: &mut Vec<Object>) {
     use crate::object::DeathCallback;
@@ -167,9 +168,13 @@ fn place_objects(room: Rect, objects: &mut Vec<Object>) {
     // choose random number of monsters
     let num_monsters = rand::thread_rng().gen_range(0, MAX_ROOM_MONSTERS + 1);
 
+    let mut monsters_pos = vec![];
+
     for _ in 0..num_monsters {
         // choose random spot for this monster
         let (x, y) = room.rand_inside();
+
+        monsters_pos.push((x, y));
 
         let mut monster = if rand::random::<f32>() < 0.8 {
             // 80% chance of getting an orc
@@ -204,5 +209,21 @@ fn place_objects(room: Rect, objects: &mut Vec<Object>) {
         monster.alive = true;
 
         objects.push(monster);
+    }
+
+    // choose random number of items
+    let num_items = rand::thread_rng().gen_range(0, MAX_ROOM_ITEMS + 1);
+
+    for _ in 0..num_items {
+        // choose random spot for this item
+        let x = rand::thread_rng().gen_range(room.x1 + 1, room.x2);
+        let y = rand::thread_rng().gen_range(room.y1 + 1, room.y2);
+
+        // only place it if the tile is not blocked
+        if !monsters_pos.contains(&(x, y)) {
+            // create a healing potion
+            let object = Object::new(x, y, '!', colors::VIOLET, "healing potion", false);
+            objects.push(object);
+        }
     }
 }
