@@ -18,6 +18,14 @@ const LIMIT_FPS: i32 = 20;
 const MAP_WIDTH: i32 = 80;
 const MAP_HEIGHT: i32 = 45;
 
+// sizes and coordinates relevant for the GUI
+const BAR_WIDTH: i32 = 20;
+const PANEL_HEIGHT: i32 = 7;
+const PANEL_Y: i32 = SCREEN_HEIGHT - PANEL_HEIGHT;
+const MSG_X: i32 = BAR_WIDTH + 2;
+const MSG_WIDTH: i32 = SCREEN_WIDTH - BAR_WIDTH - 2;
+const MSG_HEIGHT: usize = PANEL_HEIGHT as usize - 1;
+
 const COLOR_DARK_WALL: Color = Color { r: 0, g: 0, b: 100 };
 const COLOR_LIGHT_WALL: Color = Color {
     r: 130,
@@ -38,6 +46,8 @@ const COLOR_LIGHT_GROUND: Color = Color {
 // player will always be the first object
 const PLAYER: usize = 0;
 
+type Messages = Vec<(String, Color)>;
+
 fn main() {
     let mut root = Root::initializer()
         .font("arial10x10.png", FontLayout::Tcod)
@@ -47,6 +57,10 @@ fn main() {
         .init();
     tcod::system::set_fps(LIMIT_FPS);
     let mut con = Offscreen::new(MAP_WIDTH, MAP_HEIGHT);
+    let mut panel = Offscreen::new(SCREEN_WIDTH, PANEL_HEIGHT);
+
+    let mut messages: Messages = vec![];
+    add_message(&mut messages, "Welcome to MechRogfue!", colors::RED);
 
     let mut objects: Vec<Object> = Vec::new();
     let (mut map, start_position) = make_map(MAP_HEIGHT as usize, MAP_WIDTH as usize, &mut objects);
@@ -74,6 +88,8 @@ fn main() {
         render_all(
             &mut root,
             &mut con,
+            &mut panel,
+            &messages,
             &objects,
             &mut map,
             &mut fov_map,
@@ -213,6 +229,8 @@ const TORCH_RADIUS: i32 = 4;
 fn render_all(
     root: &mut Root,
     con: &mut Offscreen,
+    panel: &mut Offscreen,
+    messages: &Messages,
     objects: &[Object],
     map: &mut Map,
     fov_map: &mut FovMap,
@@ -270,4 +288,90 @@ fn render_all(
 
     // blit the contents of "con" to the root console and present it
     blit(con, (0, 0), (MAP_WIDTH, MAP_HEIGHT), root, (0, 0), 1.0, 1.0);
+
+    // prepare to render the GUI panel
+    panel.set_default_background(colors::BLACK);
+    panel.clear();
+
+    // show the player's stats
+    let hp = objects[PLAYER].hp.map_or(0, |x| x.current);
+    let max_hp = objects[PLAYER].hp.map_or(0, |x| x.max);
+    render_bar(
+        panel,
+        1,
+        1,
+        BAR_WIDTH,
+        "HP",
+        hp,
+        max_hp,
+        colors::LIGHT_RED,
+        colors::DARKER_RED,
+    );
+
+    // print the game messages, one line at a time
+    let mut y = MSG_HEIGHT as i32;
+    for &(ref msg, color) in messages.iter().rev() {
+        let msg_height = panel.get_height_rect(MSG_X, y, MSG_WIDTH, 0, msg);
+        y -= msg_height;
+        if y < 0 {
+            break;
+        }
+        panel.set_default_foreground(color);
+        panel.print_rect(MSG_X, y, MSG_WIDTH, 0, msg);
+    }
+
+    // blit the contents of `panel` to the root console
+    blit(
+        panel,
+        (0, 0),
+        (SCREEN_WIDTH, PANEL_HEIGHT),
+        root,
+        (0, PANEL_Y),
+        1.0,
+        1.0,
+    );
+}
+
+fn render_bar(
+    panel: &mut Offscreen,
+    x: i32,
+    y: i32,
+    total_width: i32,
+    name: &str,
+    value: i32,
+    maximum: i32,
+    bar_color: Color,
+    back_color: Color,
+) {
+    // render a bar (HP, experience, etc). First calculate the width of the bar
+    let bar_width = (value as f32 / maximum as f32 * total_width as f32) as i32;
+
+    // render the background first
+    panel.set_default_background(back_color);
+    panel.rect(x, y, total_width, 1, false, BackgroundFlag::Screen);
+
+    // now render the bar on top
+    panel.set_default_background(bar_color);
+    if bar_width > 0 {
+        panel.rect(x, y, bar_width, 1, false, BackgroundFlag::Screen);
+    }
+
+    // finally, some centered text with the values
+    panel.set_default_foreground(colors::WHITE);
+    panel.print_ex(
+        x + total_width / 2,
+        y,
+        BackgroundFlag::None,
+        TextAlignment::Center,
+        &format!("{}: {}/{}", name, value, maximum),
+    );
+}
+
+fn add_message<T: Into<String>>(messages: &mut Messages, message: T, color: Color) {
+    // if the buffer is full, remove the first message to make room for the new one
+    if messages.len() == MSG_HEIGHT {
+        messages.remove(0);
+    }
+    // add the new line as a tuple, with the text and the color
+    messages.push((message.into(), color));
 }
