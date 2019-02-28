@@ -1,5 +1,6 @@
 use tcod::colors;
 use tcod::console::*;
+use tcod::input::{self, Event, Key, Mouse};
 use tcod::map::{FovAlgorithm, Map as FovMap};
 use tcod::Color;
 
@@ -59,6 +60,10 @@ fn main() {
     let mut con = Offscreen::new(MAP_WIDTH, MAP_HEIGHT);
     let mut panel = Offscreen::new(SCREEN_WIDTH, PANEL_HEIGHT);
 
+    // Interactivity
+    let mut mouse = Default::default();
+    let mut key = Default::default();
+
     let mut messages: Messages = vec![];
     add_message(&mut messages, "Welcome to MechRogfue!", colors::RED);
 
@@ -82,6 +87,12 @@ fn main() {
 
     // enter Game Loop
     while !root.window_closed() {
+        match input::check_for_event(input::MOUSE | input::KEY_PRESS) {
+            Some((_, Event::Mouse(m))) => mouse = m,
+            Some((_, Event::Key(k))) => key = k,
+            _ => key = Default::default(),
+        }
+
         let new_pos = objects[PLAYER].pos();
 
         let fov_recompute = previous_player_position != new_pos;
@@ -90,6 +101,7 @@ fn main() {
             &mut con,
             &mut panel,
             &messages,
+            mouse,
             &objects,
             &mut map,
             &mut fov_map,
@@ -102,28 +114,15 @@ fn main() {
             object.clear(&mut con)
         }
 
-        previous_player_position = new_pos;
-
-        let mut exit = false;
-
         // handle keys and exit game if needed
-        loop {
-            match handle_keys(&mut root, &mut objects, &map) {
-                PlayerAction::TookTurn => break,
-                PlayerAction::NoTurn => {}
-                PlayerAction::Exit => {
-                    exit = true;
-                    break;
-                }
-            }
-        }
-
-        if exit {
+        previous_player_position = new_pos;
+        let player_action = handle_keys(key, &mut objects, &map);
+        if player_action == PlayerAction::Exit {
             break;
         }
 
         // AI behaviours
-        if objects[PLAYER].alive {
+        if objects[PLAYER].alive && player_action == PlayerAction::TookTurn {
             for idx in 0..objects.len() {
                 if objects[idx].ai.is_some() {
                     ai_take_turn(idx, &map, &mut objects, &fov_map);
@@ -188,14 +187,11 @@ enum PlayerAction {
     Exit,
 }
 
-fn handle_keys(root: &mut Root, objects: &mut Vec<Object>, map: &Map) -> PlayerAction {
-    use tcod::input::Key;
+fn handle_keys(key: Key, objects: &mut Vec<Object>, map: &Map) -> PlayerAction {
     use tcod::input::KeyCode::*;
-
     use PlayerAction::*;
 
     let player_alive = objects[PLAYER].alive;
-    let key = root.wait_for_keypress(true);
 
     match (key, player_alive) {
         (Key { code: Escape, .. }, _) => Exit, // exit game
@@ -222,6 +218,23 @@ fn handle_keys(root: &mut Root, objects: &mut Vec<Object>, map: &Map) -> PlayerA
     }
 }
 
+/// return a string with the names of all objects under the mouse
+fn get_names_under_mouse(mouse: Mouse, objects: &[Object], fov_map: &FovMap) -> String {
+    let (x, y) = (mouse.cx as i32, mouse.cy as i32);
+
+    // create a list with the names of all objects at the mouse's coordinates and in FOV
+    let names: Vec<_> = objects
+        .iter()
+        .filter(|obj| {
+            let (ox, oy) = obj.pos();
+            obj.pos() == (x, y) && fov_map.is_in_fov(ox, oy)
+        })
+        .map(|obj| obj.name.clone())
+        .collect();
+
+    names.join(", ") // join the names, separated by commas
+}
+
 const FOV_ALGO: FovAlgorithm = FovAlgorithm::Basic;
 const FOV_LIGHT_WALLS: bool = true;
 const TORCH_RADIUS: i32 = 4;
@@ -231,6 +244,7 @@ fn render_all(
     con: &mut Offscreen,
     panel: &mut Offscreen,
     messages: &Messages,
+    mouse: Mouse,
     objects: &[Object],
     map: &mut Map,
     fov_map: &mut FovMap,
@@ -319,6 +333,16 @@ fn render_all(
         panel.set_default_foreground(color);
         panel.print_rect(MSG_X, y, MSG_WIDTH, 0, msg);
     }
+
+    // display names of objects under the mouse
+    panel.set_default_foreground(colors::LIGHT_GREY);
+    panel.print_ex(
+        1,
+        0,
+        BackgroundFlag::None,
+        TextAlignment::Left,
+        get_names_under_mouse(mouse, objects, fov_map),
+    );
 
     // blit the contents of `panel` to the root console
     blit(
