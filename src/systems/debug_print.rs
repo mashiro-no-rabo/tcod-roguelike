@@ -1,4 +1,4 @@
-use specs::{System, Read};
+use specs::{Read, System};
 
 use crate::InputMapping;
 
