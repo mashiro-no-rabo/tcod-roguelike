@@ -164,6 +164,7 @@ const MAX_ROOM_ITEMS: i32 = 2;
 
 fn place_objects(room: Rect, objects: &mut Vec<Object>) {
     use crate::object::DeathCallback;
+    use crate::object::Item;
 
     // choose random number of monsters
     let num_monsters = rand::thread_rng().gen_range(0, MAX_ROOM_MONSTERS + 1);
@@ -222,7 +223,8 @@ fn place_objects(room: Rect, objects: &mut Vec<Object>) {
         // only place it if the tile is not blocked
         if !monsters_pos.contains(&(x, y)) {
             // create a healing potion
-            let object = Object::new(x, y, '!', colors::VIOLET, "healing potion", false);
+            let mut object = Object::new(x, y, '!', colors::VIOLET, "healing potion", false);
+            object.item = Some(Item::Heal);
             objects.push(object);
         }
     }

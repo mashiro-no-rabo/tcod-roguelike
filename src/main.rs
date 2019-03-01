@@ -85,6 +85,9 @@ fn main() {
 
     let mut previous_player_position = (-1, -1);
 
+    // player inventory
+    let mut inventory: Vec<Object> = vec![];
+
     // enter Game Loop
     while !root.window_closed() {
         match input::check_for_event(input::MOUSE | input::KEY_PRESS) {

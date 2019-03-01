@@ -19,6 +19,7 @@ pub struct Object {
     pub hp: Option<HitPoints>,
     pub melee: Option<Melee>,
     pub ai: Option<Ai>,
+    pub item: Option<Item>,
 }
 
 impl Object {
@@ -34,6 +35,7 @@ impl Object {
             hp: None,
             melee: None,
             ai: None,
+            item: None,
         }
     }
 
@@ -218,3 +220,8 @@ pub struct Melee {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Ai;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Item {
+    Heal,
+}
