@@ -39,6 +39,7 @@ fn create_player(world: &mut World) {
             rep: '@',
             color: colors::CYAN,
         })
+        .with(Player {})
         .build();
 }
 

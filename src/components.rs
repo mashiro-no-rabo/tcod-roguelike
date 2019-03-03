@@ -1,4 +1,4 @@
-use specs::{storage::BTreeStorage, Component, VecStorage};
+use specs::{storage::BTreeStorage, Component, NullStorage, VecStorage};
 
 // TODO: review all tcod usage here
 use tcod::Color;
@@ -21,4 +21,11 @@ pub struct MapRenderable {
 
 impl Component for MapRenderable {
     type Storage = BTreeStorage<Self>;
+}
+
+#[derive(Debug, Default)]
+pub struct Player;
+
+impl Component for Player {
+    type Storage = NullStorage<Self>;
 }
