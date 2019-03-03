@@ -8,6 +8,11 @@ impl<'a> System<'a> for DebugPrint {
     type SystemData = Read<'a, InputMapping>;
 
     fn run(&mut self, im: Self::SystemData) {
-        println!("{:?}", *im);
+        let key = &im.key;
+
+        match key {
+            None => {}
+            val => println!("{:?}", val),
+        }
     }
 }
