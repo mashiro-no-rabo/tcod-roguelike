@@ -52,12 +52,14 @@ impl<'a> System<'a> for TcodIntegration {
         }
 
         self.tcod.as_mut().map(|t| {
-            t.root.set_default_foreground(colors::WHITE);
+            t.map.set_default_foreground(colors::WHITE);
 
             for (pos, mapr) in (&pos, &mapr).join() {
-                t.root
+                t.map
                     .put_char(pos.x, pos.y, mapr.rep, BackgroundFlag::None);
             }
+
+            blit(&mut t.map, (0, 0), (SCREEN_WIDTH, SCREEN_HEIGHT), &mut t.root, (0, 0), 1.0, 1.0);
 
             t.root.flush();
         });
