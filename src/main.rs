@@ -3,26 +3,6 @@ use specs::{DispatcherBuilder, World};
 mod consts;
 mod systems;
 
-pub type Position = (i32, i32);
-
-#[derive(Debug, Default)]
-pub struct InputMapping {
-    key: Option<VirtualKey>,
-    mouse: Option<Position>,
-}
-
-#[derive(Debug)]
-pub enum VirtualKey {
-    NoAction,
-    MoveUp,
-    MoveDown,
-    MoveLeft,
-    MoveRight,
-    Exit,
-    PickItem,
-    DropItem,
-}
-
 fn main() {
     let mut world = World::new();
 
@@ -37,4 +17,22 @@ fn main() {
         dispatcher.dispatch(&mut world.res);
         world.maintain();
     }
+}
+
+#[derive(Debug, Default)]
+pub struct InputMapping {
+    key: Option<VirtualKey>,
+    mouse: Option<(i32, i32)>,
+}
+
+#[derive(Debug)]
+pub enum VirtualKey {
+    NoAction,
+    MoveUp,
+    MoveDown,
+    MoveLeft,
+    MoveRight,
+    Exit,
+    PickItem,
+    DropItem,
 }
