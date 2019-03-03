@@ -12,6 +12,7 @@ fn main() {
 
     let mut dispatcher = DispatcherBuilder::new()
         .with(systems::DebugPrint, "debug_print", &[])
+        .with(systems::Movement, "movement", &[])
         .with_thread_local(systems::TcodIntegration::default())
         .build();
 
