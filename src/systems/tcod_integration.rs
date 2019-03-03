@@ -1,4 +1,4 @@
-use specs::{prelude::Resources, Write, System};
+use specs::{join::Join, ReadStorage, Resources, System, Write};
 
 use tcod::colors;
 use tcod::console::*;
@@ -6,6 +6,7 @@ use tcod::input::{self, Event, Key, Mouse};
 use tcod::map::{FovAlgorithm, Map as FovMap};
 use tcod::Color;
 
+use crate::components::*;
 use crate::consts::*;
 use crate::{InputMapping, VirtualKey};
 
@@ -22,9 +23,15 @@ struct Tcod {
 }
 
 impl<'a> System<'a> for TcodIntegration {
-    type SystemData = Write<'a, InputMapping>;
+    type SystemData = (
+        ReadStorage<'a, Position>,
+        ReadStorage<'a, MapRenderable>,
+        Write<'a, InputMapping>,
+    );
 
-    fn run(&mut self, mut im: Self::SystemData) {
+    fn run(&mut self, data: Self::SystemData) {
+        let (pos, mapr, mut im) = data;
+
         // fetch input, this is done here to avoid being parallel executed by Specs
         match input::check_for_event(input::MOUSE | input::KEY_PRESS) {
             Some((_, Event::Mouse(m))) => {
@@ -46,6 +53,12 @@ impl<'a> System<'a> for TcodIntegration {
 
         self.tcod.as_mut().map(|t| {
             t.root.set_default_foreground(colors::WHITE);
+
+            for (pos, mapr) in (&pos, &mapr).join() {
+                t.root
+                    .put_char(pos.x, pos.y, mapr.rep, BackgroundFlag::None);
+            }
+
             t.root.flush();
         });
     }
