@@ -33,35 +33,31 @@ impl<'a> System<'a> for TcodIntegration {
         let (pos, mapr, mut im) = data;
 
         // fetch input, this is done here to avoid being parallel executed by Specs
-        match input::check_for_event(input::MOUSE | input::KEY_PRESS) {
-            Some((_, Event::Mouse(m))) => {
-                *im = InputMapping {
-                    key: None,
-                    mouse: Some((m.cx as i32, m.cy as i32)),
-                };
-            }
-            Some((_, Event::Key(k))) => {
-                *im = InputMapping {
-                    key: Some(VirtualKey::NoAction),
-                    mouse: None,
-                }
-            }
-            _ => {
-                *im = Default::default();
-            }
-        }
+        Self::map_input(&mut im);
 
         self.tcod.as_mut().map(|t| {
             t.map.set_default_foreground(colors::WHITE);
 
             for (pos, mapr) in (&pos, &mapr).join() {
-                t.map
-                    .put_char(pos.x, pos.y, mapr.rep, BackgroundFlag::None);
+                t.map.put_char(pos.x, pos.y, mapr.rep, BackgroundFlag::None);
             }
 
-            blit(&mut t.map, (0, 0), (SCREEN_WIDTH, SCREEN_HEIGHT), &mut t.root, (0, 0), 1.0, 1.0);
+            blit(
+                &mut t.map,
+                (0, 0),
+                (SCREEN_WIDTH, SCREEN_HEIGHT),
+                &mut t.root,
+                (0, 0),
+                1.0,
+                1.0,
+            );
 
             t.root.flush();
+
+            // cleanup
+            for (pos, mapr) in (&pos, &mapr).join() {
+                t.map.put_char(pos.x, pos.y, ' ', BackgroundFlag::None);
+            }
         });
     }
 
@@ -88,5 +84,38 @@ impl<'a> System<'a> for TcodIntegration {
         });
 
         tcod::system::set_fps(LIMIT_FPS);
+    }
+}
+
+impl TcodIntegration {
+    fn map_input(im: &mut InputMapping) {
+        use tcod::input::KeyCode::*;
+
+        match input::check_for_event(input::MOUSE | input::KEY_PRESS) {
+            Some((_, Event::Mouse(m))) => {
+                *im = InputMapping {
+                    key: None,
+                    mouse: Some((m.cx as i32, m.cy as i32)),
+                };
+            }
+            Some((_, Event::Key(k))) => {
+                let vkey = match k {
+                    Key { code: Up, .. } | Key { code: NumPad8, .. } => VirtualKey::MoveUp,
+                    Key { code: Down, .. } | Key { code: NumPad2, .. } => VirtualKey::MoveDown,
+                    Key { code: Left, .. } | Key { code: NumPad4, .. } => VirtualKey::MoveLeft,
+                    Key { code: Right, .. } | Key { code: NumPad6, .. } => VirtualKey::MoveRight,
+                    Key { code: Escape, .. } => VirtualKey::Exit,
+                    _ => VirtualKey::NoAction,
+                };
+
+                *im = InputMapping {
+                    key: Some(vkey),
+                    mouse: None,
+                };
+            }
+            _ => {
+                *im = Default::default();
+            }
+        }
     }
 }
