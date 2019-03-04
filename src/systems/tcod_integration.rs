@@ -55,7 +55,7 @@ impl<'a> System<'a> for TcodIntegration {
             t.root.flush();
 
             // cleanup
-            for (pos, mapr) in (&pos, &mapr).join() {
+            for (pos, _) in (&pos, &mapr).join() {
                 t.map.put_char(pos.x, pos.y, ' ', BackgroundFlag::None);
             }
         });
