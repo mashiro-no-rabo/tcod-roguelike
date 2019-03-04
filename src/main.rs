@@ -14,6 +14,7 @@ fn main() {
         .with(systems::DebugPrint, "debug_print", &[])
         .with(systems::Movement, "movement", &[])
         .with_thread_local(systems::TcodIntegration::default())
+        .with_thread_local(systems::Input)
         .build();
 
     dispatcher.setup(&mut world.res);

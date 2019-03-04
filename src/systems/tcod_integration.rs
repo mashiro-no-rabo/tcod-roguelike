@@ -1,14 +1,13 @@
-use specs::{join::Join, ReadStorage, Resources, System, Write};
+use specs::{join::Join, ReadStorage, Resources, System};
 
 use tcod::colors;
 use tcod::console::*;
-use tcod::input::{self, Event, Key, Mouse};
+
 use tcod::map::{FovAlgorithm, Map as FovMap};
 use tcod::Color;
 
 use crate::components::*;
 use crate::consts::*;
-use crate::{InputMapping, VirtualKey};
 
 #[derive(Default)]
 pub struct TcodIntegration {
@@ -23,17 +22,10 @@ struct Tcod {
 }
 
 impl<'a> System<'a> for TcodIntegration {
-    type SystemData = (
-        ReadStorage<'a, Position>,
-        ReadStorage<'a, MapRenderable>,
-        Write<'a, InputMapping>,
-    );
+    type SystemData = (ReadStorage<'a, Position>, ReadStorage<'a, MapRenderable>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (pos, mapr, mut im) = data;
-
-        // fetch input, this is done here to avoid being parallel executed by Specs
-        Self::map_input(&mut im);
+        let (pos, mapr) = data;
 
         self.tcod.as_mut().map(|t| {
             t.map.set_default_foreground(colors::WHITE);
@@ -84,38 +76,5 @@ impl<'a> System<'a> for TcodIntegration {
         });
 
         tcod::system::set_fps(LIMIT_FPS);
-    }
-}
-
-impl TcodIntegration {
-    fn map_input(im: &mut InputMapping) {
-        use tcod::input::KeyCode::*;
-
-        match input::check_for_event(input::MOUSE | input::KEY_PRESS) {
-            Some((_, Event::Mouse(m))) => {
-                *im = InputMapping {
-                    key: None,
-                    mouse: Some((m.cx as i32, m.cy as i32)),
-                };
-            }
-            Some((_, Event::Key(k))) => {
-                let vkey = match k {
-                    Key { code: Up, .. } | Key { code: NumPad8, .. } => VirtualKey::MoveUp,
-                    Key { code: Down, .. } | Key { code: NumPad2, .. } => VirtualKey::MoveDown,
-                    Key { code: Left, .. } | Key { code: NumPad4, .. } => VirtualKey::MoveLeft,
-                    Key { code: Right, .. } | Key { code: NumPad6, .. } => VirtualKey::MoveRight,
-                    Key { code: Escape, .. } => VirtualKey::Exit,
-                    _ => VirtualKey::NoAction,
-                };
-
-                *im = InputMapping {
-                    key: Some(vkey),
-                    mouse: None,
-                };
-            }
-            _ => {
-                *im = Default::default();
-            }
-        }
     }
 }
