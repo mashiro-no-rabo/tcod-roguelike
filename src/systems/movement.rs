@@ -1,7 +1,7 @@
 use specs::{join::Join, Read, ReadStorage, System, WriteStorage};
 
 use crate::components::{Player, Position};
-use crate::{InputMapping, VirtualKey};
+use crate::resources::{InputMapping, VirtualKey};
 
 #[derive(Default)]
 pub struct Movement;

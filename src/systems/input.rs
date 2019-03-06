@@ -1,8 +1,8 @@
 use specs::{System, Write};
 
-use tcod::input::{self, Event, Key, Mouse};
+use tcod::input::{self, Event, Key};
 
-use crate::{InputMapping, VirtualKey};
+use crate::resources::{InputMapping, VirtualKey};
 
 #[derive(Default)]
 pub struct Input;

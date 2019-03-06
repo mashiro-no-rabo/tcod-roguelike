@@ -1,6 +1,6 @@
 use specs::{Read, System};
 
-use crate::InputMapping;
+use crate::resources::InputMapping;
 
 pub struct DebugPrint;
 

@@ -5,14 +5,20 @@ use tcod::colors;
 
 mod components;
 mod consts;
+mod resources;
 mod systems;
+
+use resources::PlayerExit;
 
 fn main() {
     let mut world = World::new();
 
+    world.add_resource(PlayerExit(false));
+
     let mut dispatcher = DispatcherBuilder::new()
         .with(systems::DebugPrint, "debug_print", &[])
         .with(systems::Movement, "movement", &[])
+        .with(systems::Exit, "exit_game", &[])
         .with_thread_local(systems::TcodIntegration::default())
         .with_thread_local(systems::Input)
         .build();
@@ -24,6 +30,10 @@ fn main() {
     loop {
         dispatcher.dispatch(&mut world.res);
         world.maintain();
+
+        if world.read_resource::<PlayerExit>().0 {
+            break;
+        }
     }
 }
 
@@ -43,22 +53,4 @@ fn create_player(world: &mut World) {
         })
         .with(Player {})
         .build();
-}
-
-#[derive(Debug, Default)]
-pub struct InputMapping {
-    key: Option<VirtualKey>,
-    mouse: Option<(i32, i32)>,
-}
-
-#[derive(Debug)]
-pub enum VirtualKey {
-    NoAction,
-    MoveUp,
-    MoveDown,
-    MoveLeft,
-    MoveRight,
-    Exit,
-    PickItem,
-    DropItem,
 }
